@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Live Chat</title>
+    <style>
+        #chat-log {
+            width: 400px;
+            height: 300px;
+            border: 1px solid #ddd;
+            overflow-y: scroll;
+            margin-bottom: 10px;
+            padding: 5px;
+        }
+        #chat-message-input {
+            width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Live Chat Room</h2>
+    <div id="chat-log"></div>
+    <input id="chat-message-input" type="text" autocomplete="off" placeholder="Type your message here">
+    <button id="chat-message-submit">Send</button>
+
+    <script>
+        // WebSocket 연결 설정
+        const chatSocket = new WebSocket(
+            'ws://' + window.location.host + '/ws/chat/');
+
+        // 서버에서 메시지를 수신할 때 호출되는 함수
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            const chatLog = document.querySelector('#chat-log');
+
+            // 수신된 메시지를 채팅 로그에 추가
+            chatLog.innerHTML += (data.message + '<br>');
+            chatLog.scrollTop = chatLog.scrollHeight; // 새 메시지로 스크롤
+        };
+
+        // WebSocket이 비정상적으로 닫혔을 때 호출되는 함수
+        chatSocket.onclose = function(e) {
+            console.error('Chat socket closed unexpectedly');
+        };
+
+        // 메시지 입력 필드에 포커스를 설정
+        document.querySelector('#chat-message-input').focus();
+
+        // Enter 키를 눌렀을 때 메시지 전송
+        document.querySelector('#chat-message-input').onkeyup = function(e) {
+            if (e.keyCode === 13) {  // Enter 키
+                document.querySelector('#chat-message-submit').click();
+            }
+        };
+
+        // Send 버튼을 클릭했을 때 메시지 전송
+        document.querySelector('#chat-message-submit').onclick = function(e) {
+            const messageInputDom = document.querySelector('#chat-message-input');
+            const message = messageInputDom.value;
+
+            // WebSocket을 통해 서버로 메시지 전송
+            chatSocket.send(JSON.stringify({
+                'message': message
+            }));
+
+            // 입력 필드 초기화
+            messageInputDom.value = '';
+        };
+    </script>
+</body>
+</html>
