@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ chat_room.name }} - Chat Room</title>
+</head>
+<body>
+    <h1>{{ chat_room.name }}</h1>
+    <h2>Messages</h2>
+    <ul>
+        {% for message in chat_room.message_set.all %}
+            <li><strong>{{ message.user.username }}:</strong> {{ message.content }}</li>
+        {% endfor %}
+    </ul>
+    
+    <h3>Send a new message</h3>
+    {% if error %}
+        <p style="color: red;">{{ error }}</p>
+    {% endif %}
+    <form method="post" action="{% url 'create_message' chat_room.id %}">
+        {% csrf_token %}
+        <textarea name="content" rows="4" cols="50" placeholder="Type your message here..."></textarea><br>
+        <button type="submit">Send</button>
+    </form>
+    
+    <a href="{% url 'chat_room_list' %}">Back to Chat Room List</a>
+</body>
+</html>

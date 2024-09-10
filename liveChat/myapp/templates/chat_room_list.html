@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Room List</title>
+</head>
+<body>
+    <h1>Chat Room List</h1>
+    <ul>
+        {% for room in chat_rooms %}
+            <li><a href="{% url 'chat_room_detail' room.id %}">{{ room.name }}</a></li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'admin:index' %}">Admin Panel</a>
+</body>
+</html>
