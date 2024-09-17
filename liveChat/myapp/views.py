@@ -1,3 +1,4 @@
+import uuid
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponseBadRequest, HttpResponseForbidden
 from django.urls import reverse
@@ -6,11 +7,15 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from .models import ChatRoom, Message
 
-@login_required
+def get_anonymous_user_id(request):
+    if 'anonymous_user_id' not in request.session:
+        request.session['anonymous_user_id'] = str(uuid.uuid4())
+    return request.session['anonymous_user_id']
+
 def chat_room_list(request):
     """채팅방 목록을 보여주는 뷰"""
     chat_rooms = ChatRoom.objects.all()
-    if request.method == 'POST':
+    if request.method == 'POST' and request.user.is_authenticated:
         room_name = request.POST.get('room_name', '').strip()
         if room_name:
             chat_room = ChatRoom.objects.create(name=room_name, created_by=request.user)
@@ -24,9 +29,14 @@ def chat_room_detail(request, chat_room_id):
     chat_room = get_object_or_404(ChatRoom, id=chat_room_id)
     messages = Message.objects.filter(chat_room=chat_room).order_by('created_at')
     # 사용자가 입장했을 때 알림 메시지 생성
-    if not Message.objects.filter(chat_room=chat_room, content__contains=f'{request.user.username} joined the room.').exists():
-        Message.objects.create(user=request.user, chat_room=chat_room, content=f'{request.user.username} joined the room.')
-    return render(request, 'chat_room_detail.html', {'chat_room': chat_room, 'messages': messages})
+    if request.user.is_authenticated:
+        username = request.user.username
+    else:
+        username = f'Anonymous-{get_anonymous_user_id(request)}'
+    
+    if not Message.objects.filter(chat_room=chat_room, content__contains=f'{username} joined the room.').exists():
+        Message.objects.create(user=request.user if request.user.is_authenticated else None, chat_room=chat_room, content=f'{username} joined the room.')
+    return render(request, 'chat_room_detail.html', {'chat_room': chat_room, 'messages': messages, 'username': username})
 
 @login_required
 def create_message(request, chat_room_id):
@@ -36,7 +46,13 @@ def create_message(request, chat_room_id):
         content = request.POST.get('content', '').strip()
         if not content:
             return HttpResponseBadRequest('Content cannot be empty')
-        Message.objects.create(user=request.user, chat_room=chat_room, content=content)
+        if request.user.is_authenticated:
+            user = request.user
+            username = user.username
+        else:
+            user = None
+            username = f'Anonymous-{get_anonymous_user_id(request)}'
+        Message.objects.create(user=user, chat_room=chat_room, content=f'{username}: {content}')
         return redirect(reverse('chat_room_detail', args=[chat_room.id]))
     return render(request, 'create_message.html', {'chat_room': chat_room})
 
@@ -44,7 +60,8 @@ def create_message(request, chat_room_id):
 def leave_chat_room(request, chat_room_id):
     """채팅방 나가기 뷰"""
     chat_room = get_object_or_404(ChatRoom, id=chat_room_id)
-    Message.objects.create(user=request.user, chat_room=chat_room, content=f'{request.user.username} left the room.')
+    username = request.user.username if request.user.is_authenticated else f'Anonymous-{get_anonymous_user_id(request)}'
+    Message.objects.create(user=request.user if request.user.is_authenticated else None, chat_room=chat_room, content=f'{username} left the room.')
     return redirect('chat_room_list')
 
 @login_required

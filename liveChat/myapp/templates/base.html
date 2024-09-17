@@ -10,8 +10,8 @@
         <nav>
             <ul>
                 <li><a href="{% url 'index' %}">Home</a></li>
+                <li><a href="{% url 'chat_room_list' %}">Chat Room List</a></li>
                 {% if user.is_authenticated %}
-                    <li><a href="{% url 'chat_room_list' %}">Chat Room List</a></li>
                     <li><a href="{% url 'logout' %}">Logout</a></li>
                 {% else %}
                     <li><a href="{% url 'index' %}">Login</a></li>
