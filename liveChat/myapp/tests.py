@@ -1,13 +1,12 @@
 from django.test import TestCase
 from django.urls import reverse
-from django.db import IntegrityError
-from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
+from django.db import IntegrityError
 from .models import ChatRoom, Message
+from django.core.exceptions import ValidationError
 
 class ChatRoomTestCase(TestCase):
-    """채팅방 모델에 대한 테스트 케이스"""
-    
+    """채팅방 모델에 대한 테스트 케이스"""    
     @classmethod
     def setUpTestData(cls):
         """테스트를 위한 초기 설정 (모든 테스트에 공유)"""
@@ -47,12 +46,13 @@ class MessageTestCase(TestCase):
 
     def test_message_creation_with_invalid_data(self):
         """잘못된 데이터로 메시지 생성 시 예외가 발생하는지 테스트"""
-        with self.assertRaises(ValueError):
-            Message.objects.create(
+        with self.assertRaises(ValidationError):
+            message = Message(
                 user=self.user,
                 chat_room=self.chat_room,
                 content=''
             )
+            message.save()
 
 class ViewTestCase(TestCase):
     """뷰에 대한 테스트 케이스"""

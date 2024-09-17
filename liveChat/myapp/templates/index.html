@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}Index Page{% endblock %}
+
+{% block content %}
+    <h1>Welcome to the Chat Application</h1>
+    <p>This is the index page.</p>
+    
+    {% if user.is_authenticated %}
+        <p>You are logged in as {{ user.username }}.</p>
+        <a href="{% url 'chat_room_list' %}">Go to Chat Rooms</a>
+    {% else %}
+        <form method="post" action="{% url 'index' %}">
+            {% csrf_token %}
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+            <br>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+            <br>
+            <button type="submit">Login</button>
+        </form>
+        {% if error %}
+            <p style="color: red;">{{ error }}</p>
+        {% endif %}
+        <p>Don't have an account? <a href="{% url 'register' %}">Register here</a></p>
+    {% endif %}
+{% endblock %}
