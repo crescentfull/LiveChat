@@ -12,7 +12,7 @@ class ChatRoom(models.Model):
 
 class Message(models.Model):
     """메시지 모델"""
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     chat_room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)

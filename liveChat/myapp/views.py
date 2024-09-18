@@ -9,7 +9,10 @@ from .models import ChatRoom, Message
 
 def get_anonymous_user_id(request):
     if 'anonymous_user_id' not in request.session:
-        request.session['anonymous_user_id'] = str(uuid.uuid4())
+        # 세션에 익명 사용자 ID가 없으면 새로운 ID 생성
+        existing_ids = [int(id.split('익명')[1]) for id in request.session.keys() if id.startswith('익명')]
+        new_id_number = max(existing_ids, default=0) + 1
+        request.session['anonymous_user_id'] = f'익명{new_id_number}'
     return request.session['anonymous_user_id']
 
 def chat_room_list(request):
@@ -23,7 +26,6 @@ def chat_room_list(request):
             return redirect('chat_room_list')
     return render(request, 'chat_room_list.html', {'chat_rooms': chat_rooms})
 
-@login_required
 def chat_room_detail(request, chat_room_id):
     """채팅방 상세 정보를 보여주는 뷰"""
     chat_room = get_object_or_404(ChatRoom, id=chat_room_id)
@@ -38,7 +40,6 @@ def chat_room_detail(request, chat_room_id):
         Message.objects.create(user=request.user if request.user.is_authenticated else None, chat_room=chat_room, content=f'{username} joined the room.')
     return render(request, 'chat_room_detail.html', {'chat_room': chat_room, 'messages': messages, 'username': username})
 
-@login_required
 def create_message(request, chat_room_id):
     """메시지를 생성하는 뷰"""
     chat_room = get_object_or_404(ChatRoom, id=chat_room_id)
@@ -56,7 +57,6 @@ def create_message(request, chat_room_id):
         return redirect(reverse('chat_room_detail', args=[chat_room.id]))
     return render(request, 'create_message.html', {'chat_room': chat_room})
 
-@login_required
 def leave_chat_room(request, chat_room_id):
     """채팅방 나가기 뷰"""
     chat_room = get_object_or_404(ChatRoom, id=chat_room_id)

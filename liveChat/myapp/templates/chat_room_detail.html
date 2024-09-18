@@ -17,7 +17,8 @@
                             {% else %}
                                 Anonymous
                             {% endif %}
-                        </strong>: {{ message.content }} <em>({{ message.created_at }})</em>
+                        </strong>
+                        : {{ message.content }} <em>({{ message.created_at }})</em>
                     </li>
                 {% endfor %}
             </ul>
