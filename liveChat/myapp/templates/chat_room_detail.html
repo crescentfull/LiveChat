@@ -6,11 +6,19 @@
     <h1>Chat Room: {{ chat_room.name }}</h1>
     
     <h2>Messages</h2>
-    <div style="border: 1px solid #ccc; padding: 10px; max-height: 400px; overflow-y: scroll;">
+    <div id="message-container" style="border: 1px solid #ccc; padding: 10px; max-height: 400px; overflow-y: auto;">
         {% if messages %}
-            <ul>
+            <ul id="message-list">
                 {% for message in messages %}
-                    <li><strong>{{ message.user.username if message.user else 'Anonymous' }}:</strong> {{ message.content }} <em>({{ message.created_at }})</em></li>
+                    <li>
+                        <strong>
+                            {% if message.user %}
+                                {{ message.user.username }}
+                            {% else %}
+                                Anonymous
+                            {% endif %}
+                        </strong>: {{ message.content }} <em>({{ message.created_at }})</em>
+                    </li>
                 {% endfor %}
             </ul>
         {% else %}
@@ -37,4 +45,13 @@
             <button type="submit">Delete Chat Room</button>
         </form>
     {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var messageContainer = document.getElementById("message-container");
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+    });
+</script>
 {% endblock %}
