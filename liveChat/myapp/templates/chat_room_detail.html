@@ -7,31 +7,27 @@
     
     <h2>Messages</h2>
     <div id="message-container" style="border: 1px solid #ccc; padding: 10px; max-height: 400px; overflow-y: auto;">
-        {% if messages %}
-            <ul id="message-list">
-                {% for message in messages %}
-                    <li>
-                        <strong>
-                            {% if message.user %}
-                                {{ message.user.username }}
-                            {% else %}
-                                Anonymous
-                            {% endif %}
-                        </strong>
-                        : {{ message.content }} <em>({{ message.created_at }})</em>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>No messages in this chat room.</p>
-        {% endif %}
+        <ul id="message-list">
+            {% for message in messages %}
+                <li>
+                    <strong>
+                        {% if message.user %}
+                            {{ message.user.username }}
+                        {% else %}
+                            Anonymous
+                        {% endif %}
+                    </strong>
+                    : {{ message.content }} <em>({{ message.created_at }})</em>
+                </li>
+            {% endfor %}
+        </ul>
     </div>
     
     <h2>Send a new message</h2>
-    <form method="post" action="{% url 'create_message' chat_room.id %}">
+    <form id="chat-message-form">
         {% csrf_token %}
         <label for="content">Message:</label>
-        <textarea id="content" name="content" required></textarea>
+        <textarea id="content" name="content" required onkeydown="mykeydown(event)"></textarea>
         <button type="submit">Send</button>
     </form>
 
@@ -53,6 +49,48 @@
     document.addEventListener("DOMContentLoaded", function() {
         var messageContainer = document.getElementById("message-container");
         messageContainer.scrollTop = messageContainer.scrollHeight;
+
+        var roomName = "{{ chat_room.id }}";
+        var chatSocket = new WebSocket(
+            'ws://' + window.location.host + '/ws/chat/' + roomName + '/'
+        );
+
+        chatSocket.onmessage = function(e) {
+            var data = JSON.parse(e.data);
+            var message = `${data.username} : ${data.content} (${data.created_at})`;
+
+            var messageList = document.getElementById('message-list');
+            var newMessage = document.createElement('li');
+            newMessage.innerHTML = message;
+            messageList.appendChild(newMessage);
+
+            messageContainer.scrollTop = messageContainer.scrollHeight;
+        };
+
+        chatSocket.onclose = function(e) {
+            console.error('Chat socket closed unexpectedly');
+        };
+
+        function sendMessage() {
+            var messageInputDom = document.getElementById('content');
+            var message = messageInputDom.value;
+            chatSocket.send(JSON.stringify({
+                'message': message
+            }));
+            messageInputDom.value = '';
+        }
+
+        document.getElementById('chat-message-form').onsubmit = function(e) {
+            e.preventDefault();
+            sendMessage();
+        };
+
+        window.mykeydown = function(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        };
     });
 </script>
 {% endblock %}

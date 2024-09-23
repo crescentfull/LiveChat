@@ -30,14 +30,16 @@ def chat_room_detail(request, chat_room_id):
     """채팅방 상세 정보를 보여주는 뷰"""
     chat_room = get_object_or_404(ChatRoom, id=chat_room_id)
     messages = Message.objects.filter(chat_room=chat_room).order_by('created_at')
-    # 사용자가 입장했을 때 알림 메시지 생성
+    
     if request.user.is_authenticated:
         username = request.user.username
     else:
-        username = f'Anonymous-{get_anonymous_user_id(request)}'
+        username = get_anonymous_user_id(request)
     
+    # 사용자가 입장했을 때 알림 메시지 생성
     if not Message.objects.filter(chat_room=chat_room, content__contains=f'{username} joined the room.').exists():
         Message.objects.create(user=request.user if request.user.is_authenticated else None, chat_room=chat_room, content=f'{username} joined the room.')
+    
     return render(request, 'chat_room_detail.html', {'chat_room': chat_room, 'messages': messages, 'username': username})
 
 def create_message(request, chat_room_id):
