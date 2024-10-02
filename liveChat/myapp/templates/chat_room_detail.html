@@ -48,13 +48,16 @@
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         var messageContainer = document.getElementById("message-container");
+        // 메시지 컨테이너를 스크롤하여 최신 메시지가 보이도록 설정
         messageContainer.scrollTop = messageContainer.scrollHeight;
 
         var roomName = "{{ chat_room.id }}";
+        // WebSocket 연결을 설정
         var chatSocket = new WebSocket(
             'ws://' + window.location.host + '/ws/chat/' + roomName + '/'
         );
 
+        // 서버로부터 메시지를 수신할 때 호출되는 함수
         chatSocket.onmessage = function(e) {
             var data = JSON.parse(e.data);
             var message = `${data.username} : ${data.content} (${data.created_at})`;
@@ -64,27 +67,33 @@
             newMessage.innerHTML = message;
             messageList.appendChild(newMessage);
 
+            // 새로운 메시지가 추가될 때 스크롤을 최신 메시지로 이동
             messageContainer.scrollTop = messageContainer.scrollHeight;
         };
 
+        // WebSocket 연결이 예기치 않게 닫힐 때 호출되는 함수
         chatSocket.onclose = function(e) {
             console.error('Chat socket closed unexpectedly');
         };
 
+        // 메시지를 서버로 전송하는 함수
         function sendMessage() {
             var messageInputDom = document.getElementById('content');
             var message = messageInputDom.value;
             chatSocket.send(JSON.stringify({
                 'message': message
             }));
+            // 메시지 입력 필드를 비움
             messageInputDom.value = '';
         }
 
+        // 메시지 전송 폼이 제출될 때 호출되는 함수
         document.getElementById('chat-message-form').onsubmit = function(e) {
             e.preventDefault();
             sendMessage();
         };
 
+        // Enter 키를 눌러 메시지를 전송하는 함수
         window.mykeydown = function(event) {
             if (event.key === 'Enter' && !event.shiftKey) {
                 event.preventDefault();
