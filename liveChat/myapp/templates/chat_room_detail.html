@@ -94,12 +94,12 @@
         };
 
         // Enter 키를 눌러 메시지를 전송하는 함수
-        window.mykeydown = function(event) {
-            if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault();
-                sendMessage();
+        document.getElementById('content').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
+                event.preventDefault(); // 기본 Enter 키 동작(줄 바꿈)을 방지
+                setTimeout(sendMessage, 0); // 메시지 전송 함수 호출을 약간 지연
             }
-        };
+        });
     });
 </script>
 {% endblock %}
