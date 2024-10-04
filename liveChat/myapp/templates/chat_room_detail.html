@@ -5,7 +5,7 @@
 {% block content %}
     <h1>Chat Room: {{ chat_room.name }}</h1>
     
-    <h2>Messages</h2>
+    <h2>대화창</h2>
     <div id="message-container" style="border: 1px solid #ccc; padding: 10px; max-height: 400px; overflow-y: auto;">
         <ul id="message-list">
             {% for message in messages %}
@@ -17,7 +17,7 @@
                             Anonymous
                         {% endif %}
                     </strong>
-                    : {{ message.content }} <em>({{ message.created_at }})</em>
+                    : {{ message.content }} <em>({{ message.created_at|date:"Y-m-d H:i:s" }})</em>
                 </li>
             {% endfor %}
         </ul>
